@@ -70,7 +70,7 @@ Now that the data is loaded, it helps to understand get a feel for the different
 
 ## Looking at the raw values via the glimpse() command 
 
-This tells us that we are looking at more than 18k Airbnb rentals in London, for which we have 74 variables. "Glimpse" also tells us that the variables are in all kinds of formats and likely require some manipulation for the actual analysis. For instance, "host_acceptance_rate" is in <chr> format even though it is clearly a numeric variable. 
+This tells us that we are looking at more than 18k Airbnb rentals in London, for which we have 74 variables. "Glimpse" also tells us that the variables are in all kinds of formats and likely require some manipulation for the actual analysis. For instance, "host_acceptance_rate" is in character format even though it is clearly a numeric variable. 
 
 ```{r glimpse, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
 #we use glimpse to get an overview of the data
@@ -261,7 +261,7 @@ ggplot(listings_new, aes(x=as.factor(host_has_profile_pic), y=review_scores_comm
 
 Now, we focus on getting our data set in the right format for our regression analysis.  
 
-First, we look at the variable `property_type`. We can use the `count` function to determine how many categories there are and their frequency. The four most common property types are entire rental units (~50.0%), private rooms in rental units (~35.7%), entire condominiums (~2.7%), and entire serviced apartments (~2.0%). Together, these property types make up for ~90.3% of the whole sample.
+First, we look at the variable `property_type`. We can use the `count` function to determine how many categories there are and their frequency. The four most common property types are entire rental units (~48.0%), private rooms in rental units (~35.7%), entire condominiums (~2.7%), and entire serviced apartments (~2.0%). Together, these property types make up for ~90.3% of the whole sample.
 
 ```{r property_type_2, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
 
@@ -332,7 +332,7 @@ The most common values for the variable `minimum_nights` are 2, 1, and 3 nights.
 
 *Is there any value among the common values that stands out?*
 
-Especially the 30, 14 and 60 night minimum limits stand out at a first glance. These are usually longer-term Airbnbs that are used by interns or workers that are on assembly trips. It is also logical for some landlords to rent out their rooms over the longer term, as also for a longer stay the room only has to be tided once. The highest minimum night requirement is 1,124 nights. This observation must be investigated further to understand the reason behind such a high value.
+Especially the 30, 14 and 60 night minimum limits stand out at a first glance. These are usually longer-term Airbnbs that are used by interns or workers that are on assembly trips. It is also logical for some landlords to rent out their rooms over the longer term, as also for a longer stay the room only has to be tidied once. The highest minimum night requirement is 1,124 nights. This observation could be investigated as part of further analysis.
 
 
 *What is the likely intended purpose for Airbnb listings with this seemingly unusual value for `minimum_nights`?*
@@ -353,7 +353,7 @@ listings_less_four <- listings_type %>%
    
 After making these adjustments, we want to analyze the distribution of rentals in Berlin. As the chart below shows, there are certain quarters with particularly many rentals. For instance, in Kreuzberg (a southern quarter in the city), there are many rentals available. This may be due to the types of buildings and the general infrastructure in the area. Kreuzberg is home to many restaurants and bars, which makes it an interesting area for tourists. Interestingly, there are fewer Airbnb in the heart of the city. Likely this is because the political district as well as many high-end hotels are located here, which leaves less room for Airbnbs.   
 
-```{r, out.width = '80%'}
+```{r, out.width = '80%',echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
 
 #data visualization that assigns each rental to a specific map location using longitude and latitude figures
 leaflet(data = filter(listings, minimum_nights <= 4)) %>% 
@@ -726,7 +726,7 @@ In a future study, it would be interesting to apply the same model to different 
 
 ## Summary of All Models
 
-To provide an overview of the models that we worked with, we can create a summary table of the important parameters. From this table, we can see that between model 2 and 3, as well as between model 6 and 7, we could increase the explanatory power significantly. 
+To provide an overview of the models that we worked with, we can create a summary table of the important parameters. From this table, we can see that between model 2 and 3, as well as between model 6 and 7, we could increase the explanatory power significantly. Please see the earlier sections for more comparison between the differences in the models. 
 
 ```{r summary table, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
 
