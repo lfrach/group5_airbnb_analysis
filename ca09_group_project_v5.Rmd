@@ -794,4 +794,4 @@ Finally, we recommend to be aware of the impact of seasonality and weekday on pr
 
 # Acknowledgements
 
-- The data for this project is from [insideairbnb.com](insideairbnb.com)
+The data for this project is from [insideairbnb.com](insideairbnb.com)
