@@ -470,14 +470,14 @@ autoplot(model1)
 ``` 
 
 
-Because the dependent variable (i.e., price_4_nights) is log-transformed, the interpretation of the coefficients requires one additional step. The coefficient has to be exponentiated to reverse the log-transformation: (e^0.0426309-1)*100=4.3553. This adjusted coefficient means that for every unit change in review_scores_rating, the price_4_nights increases by about 4.4%. This makes intuitive sense: the higher the rating, the more the host can charge. The t-value of >6 indicates that this relationship is statistically significant.
+Because the dependent variable (i.e., price_4_nights) is log-transformed, the interpretation of the coefficients requires one additional step. The coefficient has to be exponentiated to reverse the log-transformation: (e^4.41x10^-2-1)x100=4.5087. This adjusted coefficient means that for every unit change in review_scores_rating, the price_4_nights increases by about 4.5%. This makes intuitive sense: the higher the rating, the more the host can charge. The t-value of >6 indicates that this relationship is statistically significant.
 
 To interpret the coefficients, they have to be transformed like in the previous section. This leads to the following values: 
 
-prop_type_simplifiedEntire rental unit: -13.3071
-prop_type_simplifiedEntire serviced apartment: 52.17979
-prop_type_simplifiedOther:-13.1395
-prop_type_simplifiedPrivate room in rental unit: -41.5226
+prop_type_simplifiedEntire rental unit: -11.66
+prop_type_simplifiedEntire serviced apartment: 44.77
+prop_type_simplifiedOther: -13.06
+prop_type_simplifiedPrivate room in rental unit: -40.19
 
 The variable "Entire condominium (condo)" is taken as the base value. Hence, the coefficients correspond to the %-change in price_4_nights over the base case that the Airbnb is of prop_type "Entire condominium (condo)". For instance, if you rent an "Entire serviced apartment", the price_4_nights is increased by 52% over the price that it would cost you if you had rented an "Entire condominium (condo)". The same logic also applies to the other variables, which are also all statistically significant. It also makes intuitive sense that for example "Entire serviced apartments" will be significantly more costly, because you pay for amenities such as regular cleaning or even breakfast. In a further analysis, one could split up the "Other" category further, to find out more about other property types. 
 
@@ -591,7 +591,7 @@ car::vif(model5)
 autoplot(model5)
 ``` 
 
-As can be seen from the summary statistics, the  variable "instant_bookable" is also a significant predictor of price_4_nights. The regression analysis reveals that when controlling for the other listed variables, a rental with an instant-booking option is c. 6.07% more expensive than one without. The customer pays a premium for instant confirmation that the rental can be booked. The t-statistic for the variable is high and there is little multicollinearity with other variables, which is why it should be kept in the model. 
+As can be seen from the summary statistics, the  variable "instant_bookable" is also a significant predictor of price_4_nights. The regression analysis reveals that when controlling for the other listed variables, a rental with an instant-booking option is c. 6.09% more expensive than one without. The customer pays a premium for instant confirmation that the rental can be booked. The t-statistic for the variable is high and there is little multicollinearity with other variables, which is why it should be kept in the model. 
 
 For Model6, we look at neighbourhoods. For all cities, there are 3 variables that relate to neighbourhoods: `neighbourhood`, `neighbourhood_cleansed`, and `neighbourhood_group_cleansed`. There are typically more than 20 neighbourhoods in each city, and it wouldn't make sense to include them all in the model. Instead, we manipulate the `neighbourhood_group_cleansed` variable and divide neighbourhoods into the following 4 groups:
 
@@ -645,13 +645,13 @@ autoplot(model6)
 
 ``` 
 
-The regression table confirms that neighbourhood is indeed a significant driver or price. City_Central is the base category for the analysis and is omitted in the model. Relative to this base case, all other neighbourhoods are cheaper. For example, an Airbnb in City_East will be c. 15.7% less expensive compared to the same apartment in City_Centre. Taking Berlin's history into account, this makes logical sense. The eastern part of the city is the former DDR part, where prices tend to be lower.   
+The regression table confirms that neighbourhood is indeed a significant driver or price. City_Central is the base category for the analysis and is omitted in the model. Relative to this base case, all other neighbourhoods are cheaper. For example, an Airbnb in City_East will be c. 15.3% less expensive compared to the same apartment in City_Centre. Taking Berlin's history into account, this makes logical sense. The eastern part of the city is the former DDR part, where prices tend to be lower.   
 
 For Model7, we include the effect of `avalability_30` and `reviews_per_month` on price.
 
 The variable "availability_30" is also a significant predictor of price_4_nights. The t-statistic is very high and the coefficient is positive, which means that, controlling for all the other variables, the impact of availability in the next month on price is positive.  
 
-The variable reviews_per_month does not seem to be a significant predictor as the t value is less than 2. This makes sense, since number of reviews per month are not necessarily related to the quality of the properties and therefore the price of the properties. A cheap rental could equally well have a high number of reviews per month as a medium-priced or more expensive rental. Therefore, this variable is removed from the final version of model 7, along with "beds" which also has a t-statistic <2 and is thereby not statistically relevant. 
+The variable reviews_per_month does not seem to be a significant predictor as the t value is less than 2. This makes sense, since number of reviews per month are not necessarily related to the quality of the properties and therefore the price of the properties. A cheap rental could equally well have a high number of reviews per month as a medium-priced or more expensive rental. Therefore, this variable is removed from the final version of model 7, along with "beds" and "instant_bookable" which also have a t-statistic <2 and is thereby not statistically relevant. 
 
 
 ## Model 7
@@ -662,8 +662,8 @@ The variable reviews_per_month does not seem to be a significant predictor as th
 model7_test <- lm(log_price_four_nights~number_of_reviews+review_scores_rating+room_type+bedrooms+beds+accommodates+host_is_superhost+instant_bookable+reviews_per_month+availability_30+areas,data = train)
 msummary(model7_test)
 
-# As variable reviews_per_month does not seem to be a significant predictor, we remove it from model 7
-model7 <- lm(log_price_four_nights~number_of_reviews+review_scores_rating+room_type+bedrooms+accommodates+host_is_superhost+instant_bookable+availability_30+areas,data = train)
+# As variable reviews_per_month, beds, and instant_bookable do not seem to be a significant predictor, we remove it from model 7
+model7 <- lm(log_price_four_nights~number_of_reviews+review_scores_rating+room_type+bedrooms+accommodates+host_is_superhost+availability_30+areas,data = train)
 
 #model summary
 msummary(model7)
@@ -677,7 +677,7 @@ As the summary statistics above indicate, our final model comprises of statistic
 
 ## Model 7 RMSE
 
-Next to the looking at explanatory power, we should also analyze our model using RMSE. This analysis reveals whether the model actually works on unknown data, or whether it is overfitted to the specifics of the training data. The analysis below proves that model 7 is a good model based on two things. First, rmse_train value is small (0.4192), which means predicated value and actual value are pretty close. Second, the difference (0.0016) between rmse_train and rmse_test is small, which means it is a generalized model and can be applied to not only the training set, but also has the predict power to new data. 
+Next to the looking at explanatory power, we should also analyze our model using RMSE. This analysis reveals whether the model actually works on unknown data, or whether it is overfitted to the specifics of the training data. The analysis below proves that model 7 is a good model based on two things. First, rmse_train value is small (0.419), which means predicated value and actual value are pretty close. Second, the difference (0.002) between rmse_train and rmse_test is small, which means it is a generalized model and can be applied to not only the training set, but also has the predict power to new data. 
 
 ```{r rmse, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
 
@@ -829,7 +829,7 @@ As mentioned in the introduction, the overall goal of this analysis was to find 
 - Availability in the next 30 days
 - Location of the rental
 
-The coefficients for each of these variables tell us how rental prices are impacted. For instance, the 1.9 coefficient for "Nr. of bedrooms" tells us that rental prices tend to increase with a higher nr. of bedrooms. The standard error for each of the coefficient estimates provides us with an idea of how far we are away from the "true" value of the coefficient. Whenever the the ratio of coefficient to standard error is >2, we can be relatively sure that the variable is in fact statistically significant. In our model, this is the case for all variables. The t-statistic with the closest value to 2 is the one for instant bookability (c. 2.338), which means that even for this variable we can be >95% certain that it drives price.   
+The coefficients for each of these variables tell us how rental prices are impacted. For instance, the 1.9 coefficient for "Nr. of bedrooms" tells us that rental prices tend to increase with a higher nr. of bedrooms. The standard error for each of the coefficient estimates provides us with an idea of how far we are away from the "true" value of the coefficient. Whenever the the ratio of coefficient to standard error is >2, we can be relatively sure that the variable is in fact statistically significant. In our model, this is the case for all variables. 
 
 If we look at the p-value of the overall model (c. 2.2*e^-16), we notice that this is extremely small. This simply means that our overall model helps to explain rental prices with almost absolute certainty. As previously states, the adjusted R-squared (adjusted for the nr. of variables) tells us how much of the variation in price can be explained, where 37.8% is clearly substantial.
 
