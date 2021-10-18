@@ -833,7 +833,7 @@ The coefficients for each of these variables tell us how rental prices are impac
 
 If we look at the p-value of the overall model (c. 2.2*e^-16), we notice that this is extremely small. This simply means that our overall model helps to explain rental prices with almost absolute certainty. As previously states, the adjusted R-squared (adjusted for the nr. of variables) tells us how much of the variation in price can be explained, where 37.8% is clearly substantial.
 
-Our RMSE analysis also showed us that the model works well on different sub groups of the data. In a further analysis, it would be interesting to apply the model to other cities as well and compare how the explanatory power changes and if any variable becomes an insignificant predictor of price. 
+Our RMSE analysis also showed us that the model works well on different sub groups of the data. In a further analysis, it would be interesting to apply the model to other cities as well and compare how the explanatory power changes and if any variable becomes an insignificant predictor of price.
 
 Additionally, the completeness of the data set could be improved in further analysis. We had to leave out thousands of rentals because they missed the relevant values for our chosen predictor variables. 
 
