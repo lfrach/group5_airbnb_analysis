@@ -12,6 +12,8 @@ output:
     code_folding: show
 ---
 
+![The famous Brandenburger Tor in Berlin](https://i.natgeofe.com/n/9e138c12-712d-41d4-9be9-5822a3251b5a/brandenburggate-berlin-germany.jpg)
+
 # Introduction
 
 Airbnb is among the most frequently used platforms to book short-term rentals all over the world. In this analysis, we put ourselves in the shoes of a tech-savy couple that currently plans a trip to Berlin and wants to book an apartment via Airbnb. Having access to city-specific Airbnb data, the goal of the analysis is therefore to find a regression model, which predicts the price that this couple would have to pay for a 4-night stay at some Airbnb apartment.
