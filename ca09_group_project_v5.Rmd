@@ -1,7 +1,7 @@
 ---
-title: "Final Group Project: AirBnB analytics"
-date: "12 Oct 2021"
-author: "Reading Time: About 8 minutes"
+title: "Final Group Project: AirBnB Analytics for Berlin"
+date: "18 Oct 2021"
+author: "Reading Time: About 15 minutes"
 output:
   html_document:
     highlight: zenburn
@@ -62,7 +62,6 @@ Next, we load the relevant data from insideairbnb.com. We cache this data so tha
 listings <- vroom("http://data.insideairbnb.com/germany/be/berlin/2021-09-21/data/listings.csv.gz") %>% 
        clean_names()
 
-
 ```
 
 Now that the data is loaded, it helps to understand get a feel for the different variables. This part of the analysis is known as *Exploratory Data Analysis*. There are three substeps to this: 
@@ -73,18 +72,17 @@ This tells us that we are looking at more than 18k Airbnb rentals in London, for
 
 ```{r glimpse, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
 #we use glimpse to get an overview of the data
-#"kable" is used throughout the code to get clean html tables
-glimpse<-dplyr::glimpse(listings) %>% 
-  kable(caption = "Data Set Overview") %>%
-  kable_styling(bootstrap_options = "striped", full_width = F)
-glimpse
+#"kable" is used throughout the code to get clean html tables but not used here due to rendering issues
+dplyr::glimpse(listings)
+  #kable(caption = "Data Set Overview") %>%
+  #kable_styling(bootstrap_options = "striped", full_width = F)
 ```
 
 ## Computing summary statistics of the variables of interest 
 
 Using "favstats", we can get a feel for the values that individual variables take on. We chose "accommodates", "review_scores_rating", "number_of_reviews", and "beds" because our intuive sense was that these could all impact price in our eventual regression model.
 
-From "favstats", we learn that the median for accommodates is 2, while the maximum goes up to 16. Also, the average Airbnb rental has a review score of c. 4.6. Finally, there is one Airbnb with 17 beds. These are just some exemplary figures from this descriptive analysis that help us to get a better feel for the data. Also notice that we cannot yet run the command on "price", since it is still saved as a <chr> variable. 
+From "favstats", we learn that the median for accommodates is 2, while the maximum goes up to 16. Also, the average Airbnb rental has a review score of c. 4.6. Finally, there is one Airbnb with 17 beds. These are just some exemplary figures from this descriptive analysis that help us to get a better feel for the data. Also notice that we cannot yet run the command on "price", since it is still saved as a character variable. 
 
 Using "skim", we can see that there are certain variables where many values are missing (e.g., host_about). It is good to see that "price", our dependent variable in the regression model, is not missing for any of the rentals. 
 
@@ -124,7 +122,7 @@ skim
 
 In a next step, we transform "price" and some of the other variables into numerics. Also, we use "ggpairs" to get a feel for the correlation between some of the variables. For instance, it is interesting to find out whether "accommodates" correlates with "minimum_nights". Our intuition was that very large Airbnbs may have a higher minimum_nights number, since the cleaning effort for the host is increased.
 
-The output below indicates that this intuition is not confirmed by the data, since there is actually a slightly negative correlation between minimum_nights and accommodates. As one would expect, a higher number of accommodates is correlated with a higher price. The density plots also help us see that for example review_scores_rating is left-skewed with a large number of rentals having very high ratings. Another interesting observation is that maximum_nights has a peak at 30, which means that many rentals cannot be booked for more than 30 days. This may be due to regulatory reasons, which keeps hosts to from renting out their properties for very long periods of time. 
+The output below indicates that this intuition is not confirmed by the data, since there is actually a slightly negative correlation between minimum_nights and accommodates. As one would expect, a higher number of accommodates is correlated with a higher price. The density plots also help us see that for example review_scores_rating is left-skewed with a large number of rentals having very high ratings. Another interesting observation is that maximum_nights has a peak at 365, which means that many rentals cannot be booked for more than a year. This may be due to regulatory reasons, which keeps hosts to from renting out their properties for very long periods of time. 
 
 
 ```{r numerics, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
@@ -144,39 +142,31 @@ listings_new %>%
 
 ```
 
-*These are some other questions that we can now answer*
+**These are some other questions that we can now answer**
 
-- How many variables/columns? How many rows/observations?
+*How many variables/columns? How many rows/observations?*
+
 There are 74 variables and 18,288 observations. 
 
-- Which variables are numbers?
+*Which variables are numbers?*
+
 The following variables are numbers: id, scrape_id, host_id, latitude, longitude, accommondates, bathrooms, bedrooms, beds, price, maximum_nights, minimum_nights, number_of_reviews, number_of_reviews_ltm, number_of_reviews_130d, reviews_per_month,calculated_host_listings_count, calculated_host_listings_count_entire_homes, calculated_host_listings_count_private_rooms, calculated_host_listings_count_shared_rooms, reviews_per_month; 
 
-- Which are categorical or *factor* variables (numeric or character variables with variables that have a fixed and known set of possible values?)
+*Which are categorical or factor variables (numeric or character variables with variables that have a fixed and known set of possible values?)*
 
 The following variables are factors: host_response_rate, host_acceptance_rate, host_is_superhost, host_has_profile_pic, host_identity_verified, review_scores_rating, review_scores_accuracy, review_scores_cleanliness, review_scores_checkin, review_scores_communication, review_scores_location, review_scores_value, instant_bookable;
 
-- What are the correlations between variables? Does each scatterplot support a linear relationship between variables? Do any of the correlations appear to be conditional on the value of a categorical variable?
+*What are the correlations between variables? Does each scatterplot support a linear relationship between variables? Do any of the correlations appear to be conditional on the value of a categorical variable?*
 
 We were not able to observe strong correlation between any of the variables we selected for testing. It therefore appears that there is no linear relationship between the price, the accommodates, number of reviews, review scores rating, maximum or minimum nights. We log-transform the price variable at a later stage in order to normalize higher dispersion in very expensive rentals. 
 
-We are now at the third step of the Exploratory Data Analysis section. 
+We are now at the third step of the Exploratory Data Analysis section.
 
 ## Creating informative visualizations 
 
 In this step, we plot some graphs in order to deepen our understanding of how different variables are distributed. We do not exclusively focus on variables and relationships that may impact price in our regression model, but rather try to get a feel of the dataset in general.
 
 In the *first* chart, we learn that the distribution of beds varies with the nr. of accommodates of a specific rental. This is a rather straight-forward relationship, but it helps to start with something that confirms the intuition. In general, the interquartile range increases with the nr. of accommodates per Airbnb. One can assume that this is due to any extra beds in the form of sofa beds, which are likely more frequent in larger rentals. These more "improvised" beds are less likely to be found in smaller rentals. 
-
-The *second* chart tells us that superhosts (those with many rentals and a lot of experience) have a higher median review rating and a smaller interquartile range. One can assume that superhosts more consistently provide a high quality rental experience and therefore the spread of different ratings is smaller. We can also see that there are certain rentals for which the data set does not provide information on host status ("NA").
-
-The *third* chart shows that review ratings among different room types vary. Shared rooms tend to have the worst ratings, which is likely due to the fact that the rental experience is dependent on another visitor. 
-
-The *fourth* chart shows the availability of rentals in different neighbourhoods. For example, in "Mitte" the availability is a lot lower than in Spandau. This is likely due to the fact that Mitte is in a very central location, where the demand for Airbnbs is really high.  
-
-For the *fifth* chart, we filter out all the rentals that have a price >400 to avoid the distorting effect of very expensive rentals. In a later step, we will log-transform the price variable to achieve this. For now, the chart tells us that different room types have different price distributions. The hotel room category, where you also pay for using the amenities of the respective hotel, is unsurprisingly the most expensive one. What is more interesting is that shared rooms and private rooms have very similar distributions. One reason could be that shared rooms are a lot larger, which makes up for the lack of privacy in terms of price. 
-
-From the *sixth* chart, we learn that whether a host has a profile picture seems to impact the communication rating for a specific rental. Hosts that have a picture tend to score higher in this category. After all, Airbnb customers seem to like to see who their host is and incorporate that into the communication rating they give. 
 
 ```{r property_type, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
 
@@ -187,6 +177,12 @@ ggplot(listings_new, aes(x=as.factor(accommodates), y=beds, color=accommodates))
        x="Accommodates",
        y="Nr. of beds")+
   theme(legend.position = "none")
+```
+
+The *second* chart tells us that superhosts (those with many rentals and a lot of experience) have a higher median review rating and a smaller interquartile range. One can assume that superhosts more consistently provide a high quality rental experience and therefore the spread of different ratings is smaller. We can also see that there are certain rentals for which the data set does not provide information on host status ("NA").
+
+```{r property_type2, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+
 
 #comparing Review Scores Rating between normal hosts and superhosts
 ggplot(listings_new, aes(x=as.factor(host_is_superhost), y=review_scores_rating,color=host_is_superhost))+
@@ -195,6 +191,12 @@ ggplot(listings_new, aes(x=as.factor(host_is_superhost), y=review_scores_rating,
        x="Is the host a superhost?",
        y="Review Scores Rating")+
   theme(legend.position = "none")
+```
+
+The *third* chart shows that review ratings among different room types vary. Shared rooms tend to have the worst ratings, which is likely due to the fact that the rental experience is dependent on another visitor. 
+
+```{r property_type3, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+
 
 #plotting relationship between room type and review ratings
 ggplot(listings_new, aes(x=as.factor(room_type), y=review_scores_rating, alpha=0.01, color=room_type))+
@@ -203,6 +205,13 @@ ggplot(listings_new, aes(x=as.factor(room_type), y=review_scores_rating, alpha=0
        x="Room type",
        y="Review Scores Rating")+
    theme(legend.position = "none")
+```
+
+
+The *fourth* chart shows the availability of rentals in different neighbourhoods. For example, in "Mitte" the availability is a lot lower than in Spandau. This is likely due to the fact that Mitte is in a very central location, where the demand for Airbnbs is really high.  
+
+```{r property_type4, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+
 
 #ploting availability of rental by neighbourhood
 ggplot(listings_new, aes(x=as.factor(neighbourhood_group_cleansed), y=availability_365, color=neighbourhood_group_cleansed))+
@@ -212,6 +221,12 @@ ggplot(listings_new, aes(x=as.factor(neighbourhood_group_cleansed), y=availabili
        y="Nr. of days available in the next 365 days")+
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
   theme(legend.position = "none") 
+```
+
+For the *fifth* chart, we filter out all the rentals that have a price >400 to avoid the distorting effect of very expensive rentals. In a later step, we will log-transform the price variable to achieve this. For now, the chart tells us that different room types have different price distributions. The hotel room category, where you also pay for using the amenities of the respective hotel, is unsurprisingly the most expensive one. What is more interesting is that shared rooms and private rooms have very similar distributions. One reason could be that shared rooms are a lot larger, which makes up for the lack of privacy in terms of price. 
+
+```{r property_type5, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+
 
 #filtering out the very expensive rentals to avoid strong skewness in the data 
 cheap_listings <- listings_new %>% 
@@ -224,6 +239,11 @@ ggplot(cheap_listings, aes(x=as.factor(room_type), y=price, color=room_type))+
        x="Room type",
        y="Price")+
   theme(legend.position = "none")
+```
+
+From the *sixth* chart, we learn that whether a host has a profile picture seems to impact the communication rating for a specific rental. Hosts that have a picture tend to score higher in this category. After all, Airbnb customers seem to like to see who their host is and incorporate that into the communication rating they give. 
+
+```{r property_type6, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
 
 #Relationship between host demeanor and communication ratings
 ggplot(listings_new, aes(x=as.factor(host_has_profile_pic), y=review_scores_communication, color=host_has_profile_pic))+
@@ -233,7 +253,6 @@ ggplot(listings_new, aes(x=as.factor(host_has_profile_pic), y=review_scores_comm
        x="Does the host have a profile picture?",
        y="Communication Rating")+
     theme(legend.position = "none")
-
 
 ```
 
@@ -303,18 +322,18 @@ property_min_nights
 
 ```
 
-*We can now answer some more questions*
+**We can now answer some more questions**
 
-- What are the  most common values for the variable `minimum_nights`? 
+*What are the  most common values for the variable `minimum_nights`?*
 
 The most common values for the variable `minimum_nights` are 2, 1, and 3 nights. This answer also makes sense, given many people use Airbnb for city trips, so the mininmal duration should not be too limited, but short stays and the cost or work to clean an Airbnb for a one night booking might not be worth it for many hosts.
 
-- Is there any value among the common values that stands out? 
+*Is there any value among the common values that stands out?*
 
 Especially the 30, 14 and 60 night minimum limits stand out at a first glance. These are usually longer-term Airbnbs that are used by interns or workers that are on assembly trips. It is also logical for some landlords to rent out their rooms over the longer term, as also for a longer stay the room only has to be tided once. The highest minimum night requirement is 1,124 nights. This observation must be investigated further to understand the reason behind such a high value.
 
 
-- What is the likely intended purpose for Airbnb listings with this seemingly unusual value for `minimum_nights`?
+*What is the likely intended purpose for Airbnb listings with this seemingly unusual value for `minimum_nights`?*
 
 The usual reasons for these longer minimum stays are to draw bookings from people that are on work projects, internships or are looking for a temporary stay while looking for a permanent accommodation. The benefit for the host is the lower frequency of cleaning and setting up the rooms. 
 
@@ -399,6 +418,8 @@ cost_four_nights_graph
 
 We now have all variables in the correct format and can start model selection and validation.We start with a model called `model1` with the following explanatory variables: `prop_type_simplified`, `number_of_reviews`, and `review_scores_rating`.
 
+## Model 1
+
 ```{r model1, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
 
 #model 1 with explanatory variables: `prop_type_simplified`, `number_of_reviews`, and `review_scores_rating
@@ -419,12 +440,9 @@ autoplot(model1)
 
 ``` 
 
-We can answer the following questions on this model:
 
-- Interpret the coefficient `review_scores_rating` in terms of `price_4_nights`.
-Because the dependent variable (i.e., price_4_nights) is log-transformed, the interpretation of the coefficients requires one additional step. The coefficient has to be exponentiated to reverse the log-transformation: (e^0.0426309-1)*100=4.3553. This adjusted coefficient means that for every unit change in review_scores_rating, the price_4_nights increases by about 4.4%. This makes intuitive sense: the higher the rating, the more the host can charge. The t-value of >6 indicates that this relationship is statistically significant. 
+Because the dependent variable (i.e., price_4_nights) is log-transformed, the interpretation of the coefficients requires one additional step. The coefficient has to be exponentiated to reverse the log-transformation: (e^0.0426309-1)*100=4.3553. This adjusted coefficient means that for every unit change in review_scores_rating, the price_4_nights increases by about 4.4%. This makes intuitive sense: the higher the rating, the more the host can charge. The t-value of >6 indicates that this relationship is statistically significant.
 
-- Interpret the coefficient of `prop_type_simplified` in terms of `price_4_nights`.
 To interpret the coefficients, they have to be transformed like in the previous section. This leads to the following values: 
 
 prop_type_simplifiedEntire rental unit: -13.3071
@@ -435,6 +453,8 @@ prop_type_simplifiedPrivate room in rental unit: -41.5226
 The variable "Entire condominium (condo)" is taken as the base value. Hence, the coefficients correspond to the %-change in price_4_nights over the base case that the Airbnb is of prop_type "Entire condominium (condo)". For instance, if you rent an "Entire serviced apartment", the price_4_nights is increased by 52% over the price that it would cost you if you had rented an "Entire condominium (condo)". The same logic also applies to the other variables, which are also all statistically significant. It also makes intuitive sense that for example "Entire serviced apartments" will be significantly more costly, because you pay for amenities such as regular cleaning or even breakfast. In a further analysis, one could split up the "Other" category further, to find out more about other property types. 
 
 Next, we want to determine if `room_type` is a significant predictor of the cost for 4 nights, given everything else in the model. We fit a regression model called model2 that includes all of the explanatory variables in `model1` plus `room_type`. 
+
+## Model 2
 
 ```{r model2 with room type, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
 
@@ -476,6 +496,8 @@ There is some multicollinearity between room_type and property_type, as one woul
 
 We now go on by adding other variables to the model to increase its explanatory power. Currently, we can only explain c. 19% of the variation in price with our model. We therefore include more variables to improve on this. Model3 includes the number of `bathrooms`, `bedrooms`, `beds`, and size of the house (`accomodates`) of a rental.
 
+## Model 3
+
 ```{r model3 with number of different rooms, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
 
 #for our dataset, bathrooms is NA for all entries, so we don't take bathroom into consideration
@@ -501,6 +523,8 @@ Based on this model, we learn that bedrooms and the size of the house are signif
 
 Comparing Model3 to Model2, we increase the adjusted R-squared to 0.26, which means that we can now explain more than a quarter of the variation in price. In Model4, we add the impact of the superhost variable `(host_is_superhost`) and check whether they can command a pricing premium, after controlling for other variables.
 
+## Model 4
+
 ```{r model4 with super host, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
 
 #running regression model4
@@ -520,6 +544,8 @@ autoplot(model4)
 Based on this model, superhosts charge a pricing premium, which can be seen from the positive coefficient and the high t-statistic. This makes sense, since these kinds of hosts are typically very professional in the way that they manage their apartments, which translates into higher customer value and thereby the ability to charge higher prices.  
 
 For Model5, we include the fact that some hosts allow you to immediately book their listing (`instant_bookable == TRUE`), while a non-trivial proportion don't. 
+
+## Model 5
 
 ```{r model5 with instant_bookable, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
 
@@ -546,6 +572,8 @@ City Central: Mitte, Friedrichshain-Kreuzberg
 City East: Marzahn - Hellersdorf, Treptow - Köpenick, Neukölln, Tempelhof - Schöneberg
 
 This grouping is based on (i) the geographic location of the neighbourhoods and (ii) the judgement of a Berlin local. It pays special consideration for the particularly sought-after quarters of "Mitte" and "Friedrichshain-Kreuzberg", which create their own group. 
+
+## Model 6
 
 ```{r model6 neighbourhood, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
 
@@ -597,6 +625,8 @@ The variable "availability_30" is also a significant predictor of price_4_nights
 The variable reviews_per_month does not seem to be a significant predictor as the t value is less than 2. This makes sense, since number of reviews per month are not necessarily related to the quality of the properties and therefore the price of the properties. A cheap rental could equally well have a high number of reviews per month as a medium-priced or more expensive rental. Therefore, this variable is removed from the final version of model 7, along with "beds" which also has a t-statistic <2 and is thereby not statistically relevant. 
 
 
+## Model 7
+
 ```{r model7, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
 
 # Evaluate the effect of `avalability_30` and `reviews_per_month`
@@ -615,8 +645,10 @@ car::vif(model7)
 
 As the summary statistics above indicate, our final model comprises of statistically significant variables only and has an adjusted R-squared value of 0.378. This means that the model helps to explain 37.8% of the variation in the log-transformed price. At first, this seems like a mediocre model, since almost 2/3 of the variation in price remains unexplained. However, given the fact that rental prices are very subjective to their specific location (as opposed to the mere neighborhood), the quality of the amenities, the last date of redevelopment, and many other factors, we consider an R-squared of almost 40% as satisfactory. For instance, the addition of the simplified neighborhood variable only added c. 2 percentage points of explanatory power in our analysis and we are confident that in a future investigation one should put more emphasis on this variable and possibly consider factors such as "distance to public transport" or "distance to airport". 
 
-Next to the looking at explanatory power, we should also analyze our model using RMSE. This analysis reveals whether the model actually works on unknown data, or whether it is overfitted to the specifics of the training data. The analysis below proves that model 7 is a good model based on two things. First, rmse_train value is small (0.4193), which means predicated value and actual value are pretty close. Second, the difference (0.001) between rmse_train and rmse_test is small, which means it is a generalized model and can be applied to not only the training set, but also has the predict power to new data.  
 
+## Model 7 RMSE
+
+Next to the looking at explanatory power, we should also analyze our model using RMSE. This analysis reveals whether the model actually works on unknown data, or whether it is overfitted to the specifics of the training data. The analysis below proves that model 7 is a good model based on two things. First, rmse_train value is small (0.4193), which means predicated value and actual value are pretty close. Second, the difference (0.001) between rmse_train and rmse_test is small, which means it is a generalized model and can be applied to not only the training set, but also has the predict power to new data. 
 
 ```{r rmse, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
 
@@ -663,6 +695,9 @@ rmse_test
 
 In a future study, it would be interesting to apply the same model to different cities and test how it performs there. One can hypothesize, that in different regions of the world, some variables may have a particularly strong effect on price. For example, in regions that are more unsafe or more heterogeneous than Berlin, the neighborhood variable may be of greater significance. In this case, the RMSE would reveal that the model must be adapted because the accuracy in the test data set would be a lot lower than in the training data. 
 
+
+## Summary of All Models
+
 To provide an overview of the models that we worked with, we can create a summary table of the important parameters. From this table, we can see that between model 2 and 3, as well as between model 6 and 7, we could increase the explanatory power significantly. 
 
 ```{r summary table, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
@@ -683,16 +718,22 @@ summary_table
 
 ``` 
 
-1. Finally, you must use the best model you came up with for prediction. Suppose you are planning to visit the city you have been assigned to over reading week, and you want to stay in an Airbnb. Find Airbnb's in your destination city that are apartments with a private room, have at least 10 reviews, and an average rating of at least 90. Use your best model to predict the total cost to stay at this Airbnb for 4 nights. Include the appropriate 95% interval with your prediction. Report the point prediction and interval in terms of `price_4_nights`. 
-  - if you used a log(price_4_nights) model, make sure you anti-log to convert the value in $. You can read more about [hot to interpret a regression model when some variables are log transformed here](https://stats.idre.ucla.edu/other/mult-pkg/faq/general/faqhow-do-i-interpret-a-regression-model-when-some-variables-are-log-transformed/)
-  
-  We apply the following criteria to find our target listings: 
-  - Review score value is higher than 90% of full score 
-  - number of reviews are larger than 10
-  - It has a private room 
-  - The host identity is verified and is a super host
-  - It is in the neighborhood of Friedrichshain-Kreuzberg
-  - Thee are two beds.
+
+## Test on a Specific Target Listing
+
+We now apply the following criteria to find our target listings:
+
+- Review score value is higher than 90% of full score 
+
+- number of reviews are larger than 10
+
+- It has a private room 
+
+- The host identity is verified and is a super host
+
+- It is in the neighborhood of Friedrichshain-Kreuzberg
+
+- Thee are two beds.
 
 ```{r Find our vocation Airbnb, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
 
@@ -708,8 +749,7 @@ our_target_listings <- cost_four_nights %>%
 
 ``` 
 
-
-We believe the best model is model 7 as it has the highest adjusted square and the lowest residual SE. We will apply model 7 for price prediction.
+We believe the best model is model 7 as it has the highest adjusted square and the lowest residual SE. We will apply model 7 for price prediction and an interval for the lower and upper bound. Based on the output below, we can see that the prices range from c. 130€ to 310€. However, the "lwr" and "upr" columns tell us that we the spread for each estimated price is extremely high. This should not come as a surprise, since the explanatory power of our model is limited to less than 40%. In the next chapter, we briefly discuss options on how to improve on this in a future analysis. 
 
 ```{r prediction, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
 
@@ -731,7 +771,7 @@ In this final section, we summarize the results of our selected model and discus
 
 As mentioned in the introduction, the overall goal of this analysis was to find a set of variables that would help us to predict Airbnb rental prices in Berlin. Our final model defines the following variables as statistically significant drivers of said rental prices: 
 
-_ Number of reviews
+- Number of reviews
 - Review scores rating
 - Room type
 - Nr. of bedrooms
